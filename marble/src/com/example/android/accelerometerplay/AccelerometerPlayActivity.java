@@ -48,7 +48,8 @@ import android.view.WindowManager;
  * @see Sensor
  */
 
-public class AccelerometerPlayActivity extends Activity {
+public class AccelerometerPlayActivity extends Activity 
+{
 
     private SimulationView mSimulationView;
     private SensorManager mSensorManager;
@@ -59,7 +60,8 @@ public class AccelerometerPlayActivity extends Activity {
 
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) 
+    {
         super.onCreate(savedInstanceState);
 
         // Get an instance of the SensorManager
@@ -82,7 +84,8 @@ public class AccelerometerPlayActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume() 
+    {
         super.onResume();
         /*
          * when the activity is resumed, we acquire a wake-lock so that the
@@ -96,7 +99,8 @@ public class AccelerometerPlayActivity extends Activity {
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause() 
+    {
         super.onPause();
         /*
          * When the activity is paused, we make sure to stop the simulation,
@@ -110,7 +114,8 @@ public class AccelerometerPlayActivity extends Activity {
         mWakeLock.release();
     }
 
-	class SimulationView extends View implements SensorEventListener {
+	class SimulationView extends View implements SensorEventListener 
+	{
         // diameter of the balls in meters
         private static final float sBallDiameter = 0.006f;
         private static final float sBallDiameter2 = sBallDiameter * sBallDiameter;
@@ -143,7 +148,8 @@ public class AccelerometerPlayActivity extends Activity {
          * acceleration. for added realism each particle has its own friction
          * coefficient.
          */
-        class Particle {
+        class Particle 
+        {
             private float mPosX;
             private float mPosY;
             private float mAccelX;
@@ -152,14 +158,16 @@ public class AccelerometerPlayActivity extends Activity {
             private float mLastPosY;
             private float mOneMinusFriction;
 
-            Particle() {
+            Particle() 
+            {
                 // make each particle a bit different by randomizing its
                 // coefficient of friction
                 final float r = ((float) Math.random() - 0.5f) * 0.2f;
                 mOneMinusFriction = 1.0f - sFriction + r;
             }
 
-            public void computePhysics(float sx, float sy, float dT, float dTC) {
+            public void computePhysics(float sx, float sy, float dT, float dTC) 
+            {
                 // Force of gravity applied to our virtual object
                 final float m = 1000.0f; // mass of our virtual object
                 final float gx = -sx * m;
@@ -202,19 +210,26 @@ public class AccelerometerPlayActivity extends Activity {
              * constrained particle in such way that the constraint is
              * satisfied.
              */
-            public void resolveCollisionWithBounds() {
+            public void resolveCollisionWithBounds() 
+            {
                 final float xmax = mHorizontalBound;
                 final float ymax = mVerticalBound;
                 final float x = mPosX;
                 final float y = mPosY;
-                if (x > xmax) {
+                if (x > xmax) 
+                {
                     mPosX = xmax;
-                } else if (x < -xmax) {
+                } 
+                else if (x < -xmax) 
+                {
                     mPosX = -xmax;
                 }
-                if (y > ymax) {
+                if (y > ymax) 
+                {
                     mPosY = ymax;
-                } else if (y < -ymax) {
+                } 
+                else if (y < -ymax) 
+                {
                     mPosY = -ymax;
                 }
             }
@@ -223,15 +238,18 @@ public class AccelerometerPlayActivity extends Activity {
         /*
          * A particle system is just a collection of particles
          */
-        class ParticleSystem {
+        class ParticleSystem 
+        {
             static final int NUM_PARTICLES = 1;
             private Particle mBalls[] = new Particle[NUM_PARTICLES];
 
-            ParticleSystem() {
+            ParticleSystem() 
+            {
                 /*
                  * Initially our particles have no speed or acceleration
                  */
-                for (int i = 0; i < mBalls.length; i++) {
+                for (int i = 0; i < mBalls.length; i++) 
+                {
                     mBalls[i] = new Particle();
                 }
             }
@@ -240,14 +258,18 @@ public class AccelerometerPlayActivity extends Activity {
              * Update the position of each particle in the system using the
              * Verlet integrator.
              */
-            private void updatePositions(float sx, float sy, long timestamp) {
+            private void updatePositions(float sx, float sy, long timestamp) 
+            {
                 final long t = timestamp;
-                if (mLastT != 0) {
+                if (mLastT != 0) 
+                {
                     final float dT = (float) (t - mLastT) * (1.0f / 1000000000.0f);
-                    if (mLastDeltaT != 0) {
+                    if (mLastDeltaT != 0) 
+                    {
                         final float dTC = dT / mLastDeltaT;
                         final int count = mBalls.length;
-                        for (int i = 0; i < count; i++) {
+                        for (int i = 0; i < count; i++) 
+                        {
                             Particle ball = mBalls[i];
                             ball.computePhysics(sx, sy, dT, dTC);
                         }
@@ -262,7 +284,8 @@ public class AccelerometerPlayActivity extends Activity {
              * position of all the particles and resolving the constraints and
              * collisions.
              */
-            public void update(float sx, float sy, long now) {
+            public void update(float sx, float sy, long now) 
+            {
                 // update the system's positions
                 updatePositions(sx, sy, now);
 
@@ -277,17 +300,21 @@ public class AccelerometerPlayActivity extends Activity {
                  */
                 boolean more = true;
                 final int count = mBalls.length;
-                for (int k = 0; k < NUM_MAX_ITERATIONS && more; k++) {
+                for (int k = 0; k < NUM_MAX_ITERATIONS && more; k++) 
+                {
                     more = false;
-                    for (int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) 
+                    {
                         Particle curr = mBalls[i];
-                        for (int j = i + 1; j < count; j++) {
+                        for (int j = i + 1; j < count; j++) 
+                        {
                             Particle ball = mBalls[j];
                             float dx = ball.mPosX - curr.mPosX;
                             float dy = ball.mPosY - curr.mPosY;
                             float dd = dx * dx + dy * dy;
                             // Check for collisions
-                            if (dd <= sBallDiameter2) {
+                            if (dd <= sBallDiameter2) 
+                            {
                                 /*
                                  * add a little bit of entropy, after nothing is
                                  * perfect in the universe.
@@ -314,20 +341,24 @@ public class AccelerometerPlayActivity extends Activity {
                 }
             }
 
-            public int getParticleCount() {
+            public int getParticleCount() 
+            {
                 return mBalls.length;
             }
 
-            public float getPosX(int i) {
+            public float getPosX(int i) 
+            {
                 return mBalls[i].mPosX;
             }
 
-            public float getPosY(int i) {
+            public float getPosY(int i) 
+            {
                 return mBalls[i].mPosY;
             }
         }
 
-        public void startSimulation() {
+        public void startSimulation() 
+        {
             /*
              * It is not necessary to get accelerometer events at a very high
              * rate, by using a slower rate (SENSOR_DELAY_UI), we get an
@@ -338,11 +369,13 @@ public class AccelerometerPlayActivity extends Activity {
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         }
 
-        public void stopSimulation() {
+        public void stopSimulation() 
+        {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context) {
+        public SimulationView(Context context) 
+        {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -366,7 +399,8 @@ public class AccelerometerPlayActivity extends Activity {
         }
 
         @Override
-        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) 
+        {
             // compute the origin of the screen relative to the origin of
             // the bitmap
             mXOrigin = (w - mBitmap.getWidth()) * 0.5f;
@@ -377,7 +411,8 @@ public class AccelerometerPlayActivity extends Activity {
 
 
 		@Override
-        public void onSensorChanged(SensorEvent event) {
+        public void onSensorChanged(SensorEvent event) 
+		{
             if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
                 return;
             /*
@@ -389,7 +424,8 @@ public class AccelerometerPlayActivity extends Activity {
              * to with the screen in its native orientation).
              */
 
-            switch (mDisplay.getRotation()) {
+            switch (mDisplay.getRotation()) 
+            {
                 case Surface.ROTATION_0:
                     mSensorX = event.values[0];
                     mSensorY = event.values[1];
@@ -413,7 +449,8 @@ public class AccelerometerPlayActivity extends Activity {
         }
 
         @Override
-        protected void onDraw(Canvas canvas) {
+        protected void onDraw(Canvas canvas) 
+        {
 
             /*
              * draw the background
@@ -439,7 +476,8 @@ public class AccelerometerPlayActivity extends Activity {
             final float ys = mMetersToPixelsY;
             final Bitmap bitmap = mBitmap;
             final int count = particleSystem.getParticleCount();
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++) 
+            {
                 /*
                  * We transform the canvas so that the coordinate system matches
                  * the sensors coordinate system with the origin in the center
@@ -456,7 +494,8 @@ public class AccelerometerPlayActivity extends Activity {
         }
 
         @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        public void onAccuracyChanged(Sensor sensor, int accuracy) 
+        {
         }
     }
 }
