@@ -596,6 +596,8 @@ public class AccelerometerPlayActivity extends Activity {
 
         	paint.setARGB(255,255,0,255);
             canvas.drawBitmap(mWood, 0, 0, null);
+            //Generate the maze here
+            //problems here
             generateMaze(2, 2);
             /*
              * compute the new position of our object, based on accelerometer
