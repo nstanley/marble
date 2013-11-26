@@ -16,12 +16,14 @@
 
 package com.example.android.accelerometerplay;
 
+import java.util.Stack;
 
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.BitmapFactory.Options;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -35,6 +37,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+//import java.lang.Math;
 
 /**
  * This is an example of using the accelerometer to integrate the device's
@@ -48,8 +51,8 @@ import android.view.WindowManager;
  * @see Sensor
  */
 
-public class AccelerometerPlayActivity extends Activity 
-{
+
+public class AccelerometerPlayActivity extends Activity {
 
     private SimulationView mSimulationView;
     private SensorManager mSensorManager;
@@ -57,13 +60,15 @@ public class AccelerometerPlayActivity extends Activity
     private WindowManager mWindowManager;
     private Display mDisplay;
     private WakeLock mWakeLock;
-
+	private Paint paint;
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) 
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
+        //new paint instance to be used for entire application
+        paint = new Paint();
+        
         // Get an instance of the SensorManager
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -84,8 +89,7 @@ public class AccelerometerPlayActivity extends Activity
     }
 
     @Override
-    protected void onResume() 
-    {
+    protected void onResume() {
         super.onResume();
         /*
          * when the activity is resumed, we acquire a wake-lock so that the
@@ -99,8 +103,7 @@ public class AccelerometerPlayActivity extends Activity
     }
 
     @Override
-    protected void onPause() 
-    {
+    protected void onPause() {
         super.onPause();
         /*
          * When the activity is paused, we make sure to stop the simulation,
@@ -114,14 +117,13 @@ public class AccelerometerPlayActivity extends Activity
         mWakeLock.release();
     }
 
-	class SimulationView extends View implements SensorEventListener 
-	{
+    class SimulationView extends View implements SensorEventListener {
         // diameter of the balls in meters
-        private static final float sBallDiameter = 0.006f;
+        private static final float sBallDiameter = 0.004f;
         private static final float sBallDiameter2 = sBallDiameter * sBallDiameter;
 
         // friction of the virtual table and air
-        private static final float sFriction = 0.4f;
+        private static final float sFriction = 0.1f;
 
         private Sensor mAccelerometer;
         private long mLastT;
@@ -148,8 +150,7 @@ public class AccelerometerPlayActivity extends Activity
          * acceleration. for added realism each particle has its own friction
          * coefficient.
          */
-        class Particle 
-        {
+        class Particle {
             private float mPosX;
             private float mPosY;
             private float mAccelX;
@@ -158,16 +159,14 @@ public class AccelerometerPlayActivity extends Activity
             private float mLastPosY;
             private float mOneMinusFriction;
 
-            Particle() 
-            {
+            Particle() {
                 // make each particle a bit different by randomizing its
                 // coefficient of friction
                 final float r = ((float) Math.random() - 0.5f) * 0.2f;
                 mOneMinusFriction = 1.0f - sFriction + r;
             }
 
-            public void computePhysics(float sx, float sy, float dT, float dTC) 
-            {
+            public void computePhysics(float sx, float sy, float dT, float dTC) {
                 // Force of gravity applied to our virtual object
                 final float m = 1000.0f; // mass of our virtual object
                 final float gx = -sx * m;
@@ -210,26 +209,19 @@ public class AccelerometerPlayActivity extends Activity
              * constrained particle in such way that the constraint is
              * satisfied.
              */
-            public void resolveCollisionWithBounds() 
-            {
+            public void resolveCollisionWithBounds() {
                 final float xmax = mHorizontalBound;
                 final float ymax = mVerticalBound;
                 final float x = mPosX;
                 final float y = mPosY;
-                if (x > xmax) 
-                {
+                if (x > xmax) {
                     mPosX = xmax;
-                } 
-                else if (x < -xmax) 
-                {
+                } else if (x < -xmax) {
                     mPosX = -xmax;
                 }
-                if (y > ymax) 
-                {
+                if (y > ymax) {
                     mPosY = ymax;
-                } 
-                else if (y < -ymax) 
-                {
+                } else if (y < -ymax) {
                     mPosY = -ymax;
                 }
             }
@@ -238,18 +230,15 @@ public class AccelerometerPlayActivity extends Activity
         /*
          * A particle system is just a collection of particles
          */
-        class ParticleSystem 
-        {
-            static final int NUM_PARTICLES = 1;
+        class ParticleSystem {
+            static final int NUM_PARTICLES = 15;
             private Particle mBalls[] = new Particle[NUM_PARTICLES];
 
-            ParticleSystem() 
-            {
+            ParticleSystem() {
                 /*
                  * Initially our particles have no speed or acceleration
                  */
-                for (int i = 0; i < mBalls.length; i++) 
-                {
+                for (int i = 0; i < mBalls.length; i++) {
                     mBalls[i] = new Particle();
                 }
             }
@@ -258,18 +247,14 @@ public class AccelerometerPlayActivity extends Activity
              * Update the position of each particle in the system using the
              * Verlet integrator.
              */
-            private void updatePositions(float sx, float sy, long timestamp) 
-            {
+            private void updatePositions(float sx, float sy, long timestamp) {
                 final long t = timestamp;
-                if (mLastT != 0) 
-                {
+                if (mLastT != 0) {
                     final float dT = (float) (t - mLastT) * (1.0f / 1000000000.0f);
-                    if (mLastDeltaT != 0) 
-                    {
+                    if (mLastDeltaT != 0) {
                         final float dTC = dT / mLastDeltaT;
                         final int count = mBalls.length;
-                        for (int i = 0; i < count; i++) 
-                        {
+                        for (int i = 0; i < count; i++) {
                             Particle ball = mBalls[i];
                             ball.computePhysics(sx, sy, dT, dTC);
                         }
@@ -284,8 +269,7 @@ public class AccelerometerPlayActivity extends Activity
              * position of all the particles and resolving the constraints and
              * collisions.
              */
-            public void update(float sx, float sy, long now) 
-            {
+            public void update(float sx, float sy, long now) {
                 // update the system's positions
                 updatePositions(sx, sy, now);
 
@@ -300,21 +284,17 @@ public class AccelerometerPlayActivity extends Activity
                  */
                 boolean more = true;
                 final int count = mBalls.length;
-                for (int k = 0; k < NUM_MAX_ITERATIONS && more; k++) 
-                {
+                for (int k = 0; k < NUM_MAX_ITERATIONS && more; k++) {
                     more = false;
-                    for (int i = 0; i < count; i++) 
-                    {
+                    for (int i = 0; i < count; i++) {
                         Particle curr = mBalls[i];
-                        for (int j = i + 1; j < count; j++) 
-                        {
+                        for (int j = i + 1; j < count; j++) {
                             Particle ball = mBalls[j];
                             float dx = ball.mPosX - curr.mPosX;
                             float dy = ball.mPosY - curr.mPosY;
                             float dd = dx * dx + dy * dy;
                             // Check for collisions
-                            if (dd <= sBallDiameter2) 
-                            {
+                            if (dd <= sBallDiameter2) {
                                 /*
                                  * add a little bit of entropy, after nothing is
                                  * perfect in the universe.
@@ -341,24 +321,20 @@ public class AccelerometerPlayActivity extends Activity
                 }
             }
 
-            public int getParticleCount() 
-            {
+            public int getParticleCount() {
                 return mBalls.length;
             }
 
-            public float getPosX(int i) 
-            {
+            public float getPosX(int i) {
                 return mBalls[i].mPosX;
             }
 
-            public float getPosY(int i) 
-            {
+            public float getPosY(int i) {
                 return mBalls[i].mPosY;
             }
         }
 
-        public void startSimulation() 
-        {
+        public void startSimulation() {
             /*
              * It is not necessary to get accelerometer events at a very high
              * rate, by using a slower rate (SENSOR_DELAY_UI), we get an
@@ -369,13 +345,11 @@ public class AccelerometerPlayActivity extends Activity
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         }
 
-        public void stopSimulation() 
-        {
+        public void stopSimulation() {
             mSensorManager.unregisterListener(this);
         }
 
-        public SimulationView(Context context) 
-        {
+        public SimulationView(Context context) {
             super(context);
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -399,8 +373,7 @@ public class AccelerometerPlayActivity extends Activity
         }
 
         @Override
-        protected void onSizeChanged(int w, int h, int oldw, int oldh) 
-        {
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
             // compute the origin of the screen relative to the origin of
             // the bitmap
             mXOrigin = (w - mBitmap.getWidth()) * 0.5f;
@@ -409,10 +382,8 @@ public class AccelerometerPlayActivity extends Activity
             mVerticalBound = ((h / mMetersToPixelsY - sBallDiameter) * 0.5f);
         }
 
-
-		@Override
-        public void onSensorChanged(SensorEvent event) 
-		{
+        @Override
+        public void onSensorChanged(SensorEvent event) {
             if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
                 return;
             /*
@@ -424,8 +395,7 @@ public class AccelerometerPlayActivity extends Activity
              * to with the screen in its native orientation).
              */
 
-            switch (mDisplay.getRotation()) 
-            {
+            switch (mDisplay.getRotation()) {
                 case Surface.ROTATION_0:
                     mSensorX = event.values[0];
                     mSensorY = event.values[1];
@@ -447,15 +417,139 @@ public class AccelerometerPlayActivity extends Activity
             mSensorTimeStamp = event.timestamp;
             mCpuTimeStamp = System.nanoTime();
         }
+        
+      protected class Cell {
+    	  int x, y;
+    	  
+    	  public Cell(int x, int y)
+    	  {
+    		  this.x = x;
+    		  this.y = y;
+    	  }
+    	  public boolean northWall = true;
+    	  public boolean southWall = true;
+    	  public boolean eastWall = true;
+    	  public boolean westWall = true;
+    	  public Cell left = null;
+    	  public Cell right = null;
+    	  public Cell up = null;
+    	  public Cell down = null;
+    	  public boolean visited = false;
+    	  public boolean isExit = false;
+    	  public boolean equals(Cell cell)
+    	  {
+    		  return cell == null ? false : this.x == cell.x && this.y == cell.y;
+    	  }
+      }
+      //Pseudo Code
+        /*create a CellStack (LIFO) to hold a list of cell locations 
+        set TotalCells = number of cells in grid 
+        choose a cell at random and call it CurrentCell 
+        set VisitedCells = 1 
 
-        @Override
-        protected void onDraw(Canvas canvas) 
+        while VisitedCells < TotalCells 
+
+          find all neighbors of CurrentCell with all walls intact  
+          if one or more found 
+              choose one at random 
+              knock down the wall between it and CurrentCell 
+              push CurrentCell location on the CellStack 
+              make the new cell CurrentCell 
+              add 1 to VisitedCells else 
+              pop the most recent cell entry off the CellStack 
+              make it CurrentCell endIf 
+
+        endWhile  */
+        
+        protected void generateMaze(int rows, int columns)
         {
+        	//Set Line color of paint to be purple
+        	paint.setARGB(255, 255, 0, 255);
+        	//Walls boolean
+        	
+        	//List of cells that have been visited
+        	Stack<Cell> cellsVisited = new Stack<Cell>();
+        	//Stack<Integer[][]> cellsVisited = new Stack<Integer[][]>();
+        	//boolean cells[][] = new boolean[rows][columns];
+        	Cell[][] maze = new Cell[rows][columns];
+        	//Cell[][] maze = new Cell[rows][columns];
+        	int totalCells = rows*columns;
+        	int visitedCells = 0;
+        	//Choose a random row in column 0 to start in
+        	//Random r = new Random();
+        	
+        	//initialize the maze with cells
+        	for (int x = 0; x < rows; x++)
+        	{
+        		for (int y = 0; y < columns; y++)
+        		{
+        			maze[x][y] = new Cell(x,y);
+        		}
+        	}
+        	
+        	Cell currentCell = maze[0][0];
+        	//currentCell.x = (int)Math.floor(Math.random()*rows);
+        	currentCell.x = 0;
+        	currentCell.y = (int)Math.floor(Math.random()*columns);
+        	
+        	visitedCells++;
+        	
+        	while (visitedCells < totalCells)
+        	{
+        		
+        		//random a number between 1 and 4
+        		int direction = (int)(Math.random() * 4) +1;
+        		if (maze[currentCell.x+1][currentCell.y].eastWall == true
+        			|| maze[currentCell.x][currentCell.y+1].southWall == true
+        			|| maze[currentCell.x][currentCell.y-1].northWall == true
+        			|| maze[currentCell.x-1][currentCell.y].westWall == true)
+        		{
+        			//we found a neighboring wall
+        			if (direction == 1 && currentCell.y != columns)
+        			{ // go up
+        				maze[currentCell.x][currentCell.y].northWall = false;
+        				maze[currentCell.x][currentCell.y+1].southWall = false;
+        				cellsVisited.push(currentCell);
+        				currentCell.y++;
+        			}
+        			if (direction == 2 && currentCell.x != rows)
+        			{ // go right
+        				maze[currentCell.x][currentCell.y].westWall= false;
+        				maze[currentCell.x+1][currentCell.y].eastWall = false;
+        				cellsVisited.push(currentCell);
+        				currentCell.x++;
+        			}
+        			if (direction == 3 && currentCell.y != 0)
+        			{ // go down
+        				maze[currentCell.x][currentCell.y].southWall = false;
+        				maze[currentCell.x][currentCell.y-1].northWall = false;
+        				cellsVisited.push(currentCell);
+        				currentCell.y--;
+        			}
+        			if (direction == 4 && currentCell.x != 0)
+        			{ // go left
+        				maze[currentCell.x][currentCell.y].eastWall = false;
+        				maze[currentCell.x-1][currentCell.y].westWall = false;
+        				cellsVisited.push(currentCell);
+        				currentCell.x--;
+        			}
+        			visitedCells++;	
+        		}
+        		else
+        		{
+        			currentCell = cellsVisited.pop();
+        		}
+        	
+        	}
+        }
+        @Override
+        protected void onDraw(Canvas canvas) {
 
             /*
              * draw the background
              */
 
+        	paint.setARGB(255,255,0,255);
             canvas.drawBitmap(mWood, 0, 0, null);
 
             /*
@@ -476,8 +570,7 @@ public class AccelerometerPlayActivity extends Activity
             final float ys = mMetersToPixelsY;
             final Bitmap bitmap = mBitmap;
             final int count = particleSystem.getParticleCount();
-            for (int i = 0; i < count; i++) 
-            {
+            for (int i = 0; i < count; i++) {
                 /*
                  * We transform the canvas so that the coordinate system matches
                  * the sensors coordinate system with the origin in the center
@@ -494,8 +587,7 @@ public class AccelerometerPlayActivity extends Activity
         }
 
         @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) 
-        {
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     }
 }
