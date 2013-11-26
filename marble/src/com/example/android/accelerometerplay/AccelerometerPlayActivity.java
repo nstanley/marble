@@ -61,6 +61,7 @@ public class AccelerometerPlayActivity extends Activity {
     private Display mDisplay;
     private WakeLock mWakeLock;
 	private Paint paint;
+	private Canvas canvas;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -541,7 +542,51 @@ public class AccelerometerPlayActivity extends Activity {
         		}
         	
         	}
+        	//loop through the maze and draw the walls
+        	for (int x = 0; x < rows; x++)
+        	{
+        		for (int y = 0; y < columns; y++)
+        		{
+        			drawWall(maze[x][y], rows, columns);
+        		}
+        	}
         }
+        
+        //Draw the wall for the current cell based on the walls that are up
+        protected void drawWall(Cell cell, int rows, int columns)
+        {
+
+        	//Check which walls are up by checking their boolean values for
+        	//northWall, eastWall, westWall, southWall
+        	//If the value of any of these walls are true then use canvas.drawLine
+        	//to draw a line where the wall should be
+        	if (cell.northWall)
+        	{
+        		//Starting at (0,0)
+        		//So the north wall would be x -> x+1, y+1 -> y+1
+        		if (cell.y != columns)
+        		{
+				canvas.drawLine(cell.x, cell.y+1, cell.x+1, cell.y+1, paint);
+        		}
+        	}
+        	if (cell.eastWall)
+        	{
+        		//East wall would be x+1 -> x+1, y -> y+1
+        		if (cell.x != rows)
+        		canvas.drawLine(cell.x+1, cell.y, cell.x+1, cell.y+1, paint);
+        	}
+        	if (cell.southWall)
+        	{
+        		//South wall would be x -> x+1, y -> y
+        		canvas.drawLine(cell.x, cell.y, cell.x+1, cell.y, paint);
+        	}
+        	if (cell.southWall)
+        	{
+        		//West wall would be x -> x, y -> y+1
+        		canvas.drawLine(cell.x, cell.y, cell.x, cell.y+1, paint);
+        	}
+        }
+    
         @Override
         protected void onDraw(Canvas canvas) {
 
@@ -551,7 +596,7 @@ public class AccelerometerPlayActivity extends Activity {
 
         	paint.setARGB(255,255,0,255);
             canvas.drawBitmap(mWood, 0, 0, null);
-
+            generateMaze(2, 2);
             /*
              * compute the new position of our object, based on accelerometer
              * data and present time.
